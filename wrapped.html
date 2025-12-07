@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Year Wrapped</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            touch-action: none;
+        }
+
+        .slide-container {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 20px 30px;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1;
+            opacity: 0;
+            transform: scale(0.9);
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        .icon-container {
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .icon {
+            font-size: 120px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .fingerprint {
+            width: 180px;
+            height: 180px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            user-select: none;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+        }
+
+        .value {
+            font-size: 64px;
+            font-weight: bold;
+            color: white;
+            margin: 20px 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .label {
+            font-size: 20px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 10px;
+        }
+
+        .button-container {
+            width: 100%;
+            max-width: 400px;
+            z-index: 1;
+        }
+
+        .button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+        }
+
+        .button-primary {
+            background: white;
+            color: #333;
+        }
+
+        .button-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .button:active {
+            transform: scale(0.95);
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            width: 24px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .hold-text {
+            font-size: 16px;
+            color: rgba(255,255,255,0.8);
+            margin-top: 10px;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .gradient-bg-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-bg-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .gradient-bg-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .gradient-bg-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .gradient-bg-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .gradient-bg-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+        .gradient-bg-7 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .gradient-bg-8 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .gradient-bg-0 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Генерация случайных данных
+        const stats = {
+            days_ago: Math.floor(Math.random() * 800) + 300,
+            messages: Math.floor(Math.random() * 1500) + 200,
+            circles: Math.floor(Math.random() * 3000) + 1000,
+            fastest_response: (Math.random() * 2 + 0.1).toFixed(1),
+            slowest_response: Math.floor(Math.random() * 96) + 24,
+            longest_streak: Math.floor(Math.random() * 20) + 3,
+            longest_ignore: Math.floor(Math.random() * 25) + 5,
+            last_active: 'Декабрь 6, 2025'
+        };
+
+        const slides = [
+            {
+                title: "Я хочу узнать итоги года",
+                subtitle: "Удержи палец в центре экрана",
+                type: "fingerprint",
+                bg: 0
+            },
+            {
+                title: "Восходящая звезда!",
+                subtitle: `Ты присоединился(-ась) к Telegram`,
+                value: stats.days_ago,
+                label: "дней назад",
+                icon: "⭐",
+                bg: 1
+            },
+            {
+                title: "Количество сообщений",
+                subtitle: "Всего в публичных чатах ты написал(-а)",
+                value: stats.messages,
+                label: "сообщения",
+                icon: "💬",
+                bg: 2
+            },
+            {
+                title: "Количество кружков",
+                subtitle: "Камера тебя любит!",
+                value: stats.circles,
+                label: "Всего кружков ты записал(-а):",
+                icon: "🦆",
+                bg: 3
+            },
+            {
+                title: "Дата последнего сообщения",
+                subtitle: "Активность — на максимум!",
+                value: stats.last_active,
+                icon: "📅",
+                bg: 4
+            },
+            {
+                title: "Самый быстрый ответ",
+                subtitle: "Ты был(-а) онлайн 24/7?",
+                value: `< ${stats.fastest_response} секунд`,
+                label: "Самый быстрый ответ на сообщение",
+                icon: "⚡",
+                bg: 5
+            },
+            {
+                title: "Самый долгий ответ",
+                subtitle: "Кажется, кто-то у тебя явно был в игноре.",
+                value: `${stats.slowest_response} часа`,
+                label: "Твой самый медленный ответ",
+                icon: "🐌",
+                bg: 6
+            },
+            {
+                title: "Самый долгий сеанс",
+                subtitle: "Твоё утро начинается не с кофе — сначала Telegram.",
+                value: `${stats.longest_streak} дней подряд`,
+                label: "Ты открывал(-а) Telegram",
+                icon: "🏆",
+                bg: 7
+            },
+            {
+                title: "Самый длинный период игнора",
+                subtitle: "Кому-то не повезло..",
+                value: `${stats.longest_ignore} дней подряд`,
+                label: "Ты игнорил(-а) кого-то",
+                icon: "📁",
+                bg: 8
+            }
+        ];
+
+        let currentSlide = 0;
+        let holdTimer = null;
+        let holdProgress = 0;
+
+        function createStars(container) {
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        function renderSlide(index) {
+            const slide = slides[index];
+            const app = document.getElementById('app');
+            
+            app.innerHTML = `
+                <div class="slide-container gradient-bg-${slide.bg}">
+                    <div class="stars" id="stars"></div>
+                    
+                    <div class="content">
+                        <div class="title">${slide.title}</div>
+                        <div class="subtitle">${slide.subtitle}</div>
+                        
+                        ${slide.type === 'fingerprint' ? `
+                            <div class="icon-container">
+                                <div class="fingerprint" id="holdButton">
+                                    <div style="font-size: 80px;">👆</div>
+                                </div>
+                                <div class="hold-text">Удерживай для продолжения</div>
+                            </div>
+                        ` : `
+                            <div class="icon-container">
+                                <div class="icon">${slide.icon}</div>
+                            </div>
+                            ${slide.label ? `<div class="label">${slide.label}</div>` : ''}
+                            ${slide.value ? `<div class="value">${slide.value}</div>` : ''}
+                        `}
+                    </div>
+                    
+                    <div class="button-container">
+                        <div class="progress-dots">
+                            ${slides.map((_, i) => `<div class="dot ${i === index ? 'active' : ''}"></div>`).join('')}
+                        </div>
+                        ${index > 0 ? '<button class="button button-secondary" onclick="prevSlide()">◀️ Назад</button>' : ''}
+                        ${index > 0 && index < slides.length - 1 ? '<button class="button button-primary" onclick="nextSlide()">Продолжить ▶️</button>' : ''}
+                        ${index === slides.length - 1 ? '<button class="button button-primary" onclick="finish()">🎉 Завершить</button>' : ''}
+                    </div>
+                </div>
+            `;
+
+            createStars(document.getElementById('stars'));
+
+            if (slide.type === 'fingerprint') {
+                setupHoldButton();
+            }
+
+            tg.BackButton.onClick(() => {
+                if (currentSlide > 0) {
+                    prevSlide();
+                }
+            });
+
+            if (currentSlide > 0) {
+                tg.BackButton.show();
+            } else {
+                tg.BackButton.hide();
+            }
+        }
+
+        function setupHoldButton() {
+            const button = document.getElementById('holdButton');
+            
+            const startHold = () => {
+                holdProgress = 0;
+                holdTimer = setInterval(() => {
+                    holdProgress += 100;
+                    if (holdProgress >= 1500) {
+                        clearInterval(holdTimer);
+                        tg.HapticFeedback.impactOccurred('medium');
+                        nextSlide();
+                    }
+                }, 100);
+            };
+
+            const stopHold = () => {
+                if (holdTimer) {
+                    clearInterval(holdTimer);
+                    holdTimer = null;
+                    holdProgress = 0;
+                }
+            };
+
+            button.addEventListener('touchstart', startHold);
+            button.addEventListener('mousedown', startHold);
+            button.addEventListener('touchend', stopHold);
+            button.addEventListener('mouseup', stopHold);
+            button.addEventListener('touchcancel', stopHold);
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                tg.HapticFeedback.impactOccurred('light');
+                renderSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                tg.HapticFeedback.impactOccurred('light');
+                renderSlide(currentSlide);
+            }
+        }
+
+        function finish() {
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert('Спасибо за просмотр! 🎉', () => {
+                tg.close();
+            });
+        }
+
+        // Инициализация
+        renderSlide(0);
+    </script>
+</body>
+</html>
